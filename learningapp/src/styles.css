@@ -1,0 +1,9 @@
+/* You can add global styles to this file, and also import other style files */
+.page-container .page-content {
+    display: flex;
+    flex-flow: wrap row;
+}
+.page-content > *{
+    border: 1px solid red;
+    flex: 1 1 20%;
+}

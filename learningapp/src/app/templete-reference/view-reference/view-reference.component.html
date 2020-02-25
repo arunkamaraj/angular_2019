@@ -1,0 +1,23 @@
+<h1>
+  HI it is view init example
+</h1>
+<div #sample></div>
+<app-custom-button [buttonName]='button1'></app-custom-button>
+<app-custom-button [buttonName]='button2'></app-custom-button>
+<app-custom-button [buttonName]='button3'></app-custom-button>
+
+<p #paragraph1>Lorem ipsum dolor sit amet, consetetur
+    sadipscing elitr, sed diam nonumy eirmod tempor invidunt
+    ut labore et dolore magna aliquyam erat, sed diam
+    voluptua. 
+</p>
+
+<p #paragraph2>At vero eos et accusam et justo duo
+    dolores et ea rebum. Stet clita kasd gubergren, no sea
+    takimata sanctus est Lorem ipsum dolor sit amet. Lorem
+    ipsum dolor sit amet, consetetur sadipscing elitr, sed
+    diam nonumy eirmod tempor invidunt ut labore et dolore
+    magna aliquyam erat, sed diam voluptua.
+  </p>
+  
+  <p *ngIf="note">{{note}}</p>

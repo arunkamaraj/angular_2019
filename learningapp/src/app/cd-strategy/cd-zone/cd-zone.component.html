@@ -1,0 +1,33 @@
+<div class="page-container">
+  <div class="page-header" style="text-align:center">
+    <h1>
+      Welcome to CD!!
+    </h1>
+  </div>
+  <div class="page-content">
+    <div>
+      <app-cd-default [name]="defaultCDData"> </app-cd-default>
+
+      <button (click)="onClick()">Trigger change detection for default</button>
+    </div>
+    <div>
+      <app-cd-onpush [config]="config"> </app-cd-onpush>
+
+      <button (click)="onClickfForOnPush()">
+        Trigger change detection for onPsush
+      </button>
+    </div>
+
+    <div>
+      <app-cd-onpush [config]="config"> </app-cd-onpush>
+
+      <button (click)="onClickfForOnPushWithRefChange()">
+        Trigger change detection for onPsush with ref change
+      </button>
+    </div>
+
+    <app-cd-asynchronous-api></app-cd-asynchronous-api>
+
+    <app-cd-explicit></app-cd-explicit>
+  </div>
+</div>

@@ -1,0 +1,240 @@
+Pipeable operators
+Avoiding memory leaks
+Avoiding nested subscribes
+Avoiding manual subscribes in Angular
+Don’t pass streams to components directly
+Don’t pass streams to services
+
+----------------------------------------------
+Pipeable or lettable operators:
+
+They’re lightweight, will make your code easily re-usable and can decrease your overall build size.
+
+Key factor - TreeShaking
+
+
+
+// BAD: This is the old way and should be avoided (patch operators)
+// as we can see the operators (filter, map) are part of the
+// Observable prototype
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/map';
+const new$ = Observable.interval$
+    .filter(v => v % 2 === 0)
+    .map(v => v * 2);
+
+// GOOD: This is the new and improved way (lettable operators)
+// we just use the pipe operator where we pass operators that
+// we can import from 'rxjs/operators'
+import {filter, map} from 'rxjs/operators';
+const new$ = interval$
+    .pipe(
+        filter(v => v % 2 === 0),
+        map(v => v *2)
+    )
+	
+code reusability:
+
+
+import { from } from 'rxjs/observable/from';
+
+const source$ = from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+source$
+  .filter(x => x % 2)
+  .map(x => x * 2)
+  .scan((acc, next) => acc + next, 0)
+  .startWith(0)
+  .subscribe(console.log)
+  
+  -----------------------------
+
+import { Observable } from 'rxjs/Rx';
+import { filter, map, c } from 'rxjs/operators';
+
+const filterOutEvens = filter(x => x % 2);
+const sum = reduce((acc, next) => acc + next, 0);
+const doubleBy = x => map(value => value * x);
+
+const source$ = Observable.range(0, 10);
+
+source$.let(filterOutEvens).subscribe(x => console.log(x)); // [1, 3, 5, 7, 9]
+
+
+------------
+Lettable fuctions:
+
+source$
+  .let(filterOutEvens)
+  .let(doubleBy(2))
+  .let(sum)
+  .subscribe(x => console.log(x)); // 50
+  
+-------
+ It looks so verbose: so to clean up we acn use th pipe for all lettable opreator 
+ 
+ source$.pipe(
+  filterOutEvens, 
+  doubleBy(2), 
+  sum)
+  .subscribe(console.log); // 50
+
+----------
+
+Pipe util :
+
+const complicatedLogic = pipe(
+  filterOutEvens,
+  doubleBy(2),
+  sum
+);
+
+const source$ = Observable.range(0, 10);
+
+source$.let(complicatedLogic).subscribe(x => console.log(x)); // 50	
+
+--------------
+
+Tree shaking : 
+
+Tree shaking is a method of optimising our code bundles by eliminating any code from the final file that isn’t actually being used
+
+It’s easy for TypeScript and bundlers to determine whether the lettable operators imported into a module are actually used. And if they are not, they can be left unbundled. If prototype patching is used, this task is manual and tedious.
+
+
+--------------------------------------------------------------
+
+Avoiding memory leaks:
+
+Code :
+    subscriptions = [];
+    ngOnInit() {
+        const interval$ = interval(1000);
+        const subscription = interval$.subscribe(r => console.log(r));
+        // manually keep track of the subscriptions in a subscription array
+        this.subscriptions.push(subscription);
+    }
+
+    ngOnDestroy() {
+        // when the component get's destroyed, unsubscribe all the subscriptions
+        this.subscriptions.forEach(sub => sub.unsubscribe());
+    }
+	
+	
+Why Subscribe: 	
+1. used directly in the component’s method	
+	
+Disadvantages of using subscribe()?
+1. ngOnDestroy()
+2. Subscribing to the observable manually in the ngOnInit() doesn’t work with OnPush change detection strategy out of the box. 
+	this.cd.markForCheck()
+
+Advantage of pipe :
+1. works with OnPush change detection
+2. there is no need to unsubscribe manually 
+
+Disadvantage : 
+1. Objects have to be potentially unwrapped multiple times in a single template in multiple different places
+2. Properties unwrapped in the template using *ngIf or *ngFor are not accessible in the component’s methods. (pass these properties to the methods from the template)
+3. We could also use <ng-container> instead of <div>. This way, no new wrapper element will be created in the final DOM but we still end up with wrapped element in the template source code.
+
+--------------------------------------------	
+Avoiding nested subscribes:
+
+Nesting subscribes is something that needs to be avoided as much as possible. It makes the code unreadable, complex, and introduces side effects.
+
+Nested Subscribe with flatmap:
+
+this.httpClient.get('/customers/123')
+  .subscribe(customer => {
+              this.httpClient.get(customer.orderUrl)
+              .subscribe(response => this.order = response)
+  })
+
+using FlatMap 
+
+httpClient.get('./customers/123')
+          .flatMap(customer => this.httpClient.get(customer.orderURL))
+          .subscribe(response => this.order = response);
+		  
+		  
+
+Nested Subscribe with switchMap:  
+
+https://stackblitz.com/edit/observable-mergemap
+
+
+----------------------------------------------
+
+
+Don’t pass streams to components directly:
+
+it creates a very tight link between the parent component and the child component. 
+
+// BAD
+// app.component.ts
+@Component({
+    selector: 'app',
+    template: `
+        <!-- 
+            BAD: The users$ steram is passed
+            to user-detail directly as a stream 
+        -->
+        <user-detail [user$]="user$"></user-detail>
+    `
+})
+class AppComponent {
+    // this http call will get called when the 
+    // user-detail component subscribes to users$
+    // We don't want that
+    users$ = this.http.get(...);
+    ...
+}
+
+// user-detail.component.ts
+@Component({
+    selector: 'user-detail',
+    template: `
+        
+    `
+})
+class UserDetailComponent implements OnInit {
+    @Input() user$: Observable<User>;
+    user: User;
+    ngOnInit(){
+        // WHOOPS! This child component subscribes to the stream
+        // of the parent component which will do an automatic XHR call
+        // because Angular HTTP returns a cold stream
+        this.user$.subscribe(u => this.user = u);
+    }
+}
+
+
+-------------------------------------------------------
+
+Don’t pass streams to services:
+
+passing a stream to a service we don’t know what’s going to happen to it. 
+The stream could be subscribed to, or even combined with another stream that has a longer lifecycle, that could eventually determine the state of our application.
+
+
+// GOOD
+// app.component.ts
+class AppComponent {
+    users$ = this.http.get(...)
+    filteredusers$ = this.users$
+        .pipe(switchMap(users => this.fooService.filterUsers(users)));
+    ...
+}
+
+// foo.service.ts
+class FooService {
+    // this is way cleaner: this service doesn't even know
+    // about streams now
+    filterUsers(users: User[]): User[] {
+        return users.filter(user => user.age >= 18);
+    }
+}
+
+
+------------------------------------------------------

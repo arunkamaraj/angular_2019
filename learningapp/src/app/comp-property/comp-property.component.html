@@ -1,0 +1,44 @@
+<div class="page-container">
+  <div class="page-header" style="text-align:center">
+      <h1>
+          comp-property works! 
+      </h1>
+  </div>
+
+  <div class="page-content">
+    <div>
+      <h2>Interploated value</h2>
+      <br>{:!age!:}
+    </div>
+    
+    <div>
+        <h2 >providers demo </h2> <br>{:!myClass.time!:}
+    </div>
+  
+    <div>
+      <app-singletons-provider></app-singletons-provider>
+    </div>
+    
+    <div>
+      <app-non-singleton></app-non-singleton>
+    </div>
+  
+    <div>
+        <h2> view children demo </h2>
+      <app-query *ngFor="let i of sampleArray">
+      </app-query>
+    </div>
+  
+    <div>
+      <h2>content children demo</h2>
+      <app-query>
+        <app-query-content>
+        </app-query-content>
+        <app-query-content>
+        </app-query-content>
+      </app-query>
+    </div>
+
+  </div> 
+  
+</div>

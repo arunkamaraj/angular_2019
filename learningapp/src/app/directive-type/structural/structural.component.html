@@ -1,0 +1,29 @@
+<h2>
+  structural works!
+</h2>
+<h3>-------------ngIF---------------------------</h3>
+<div *ngIf="showName">
+  Name: Arun Kamaraj
+</div>
+<div *ngIf="!showName">
+  Name: Kiruthika
+</div>
+<button (click)="toggle()">
+Toggle
+</button>
+
+<h3>-------------ngFor---------------------------</h3>
+
+<div *ngFor="let lan of lanList; let i = index;first as first; last as last; even as even; odd as odd;">
+  <div>{{i}}: {{lan}} first_info: {{first}},last_info: {{last}}, odd_info: {{odd}}, even_info: {{even}}</div>
+</div>
+
+<h3>-------------ngSwicth---------------------------</h3>
+<select [(ngModel)]="selection">
+    <option *ngFor="let option of options">{{option}}</option>
+</select>
+<div [ngSwitch]="selection">
+  <div class="block1" *ngSwitchCase="options[0]">name</div>
+  <div class="block2" *ngSwitchCase="options[1]">address</div>
+  <div class="block3" *ngSwitchDefault>other</div>
+</div>
